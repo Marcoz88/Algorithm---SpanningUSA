@@ -1,0 +1,86 @@
+import edu.princeton.cs.algs4.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Scanner;
+
+public class SpanningUS {
+	static HashMap<String, LinkedList<Edge>> list = new HashMap<String, LinkedList<Edge>>();
+	
+	public static int getMST() {
+		int mst = 0;
+		HashSet<String> checkedV = new HashSet<String>();
+		String firstCity = list.keySet().iterator().next();
+		checkedV.add(firstCity);
+		PriorityQueue<Edge> edges = new PriorityQueue<Edge>();
+		edges.addAll(list.get(firstCity));
+		while (!edges.isEmpty()) {
+			Edge e = edges.remove();
+			if (!checkedV.contains(e.target)) {  //if it contains the string city destination of the edge connecting 2 vertices
+				mst += e.weight;
+				checkedV.add(e.target);
+				edges.addAll(list.get(e.target));
+			}
+		}
+		return mst;
+	}
+
+	public static void readList(File file) {
+		Scanner scan = null;
+		try {
+			scan = new Scanner(file);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		boolean kmRead = false;
+		
+		while (scan.hasNext()) {
+			String line = scan.nextLine();
+			if (!kmRead && line.contains("--")) {
+				kmRead = true;
+			}
+			if (kmRead) {
+				String[] citySplit = line.split("--");
+				citySplit[0] = citySplit[0].trim();
+				String[] kmTargetSplit = citySplit[1].split("\\[");
+				kmTargetSplit[1] = kmTargetSplit[1].substring(0,
+						kmTargetSplit[1].length() - 1); // - ]
+						
+				list.get(citySplit[0]).add(new Edge(citySplit[0], kmTargetSplit[0].trim(), Integer
+								.parseInt(kmTargetSplit[1])));
+								
+				list.get(kmTargetSplit[0].trim()).add(
+						new Edge(kmTargetSplit[0].trim(),  citySplit[0],  Integer
+								.parseInt(kmTargetSplit[1])));
+			} 
+			if(!kmRead) {
+				list.put(line.trim(), new LinkedList<Edge>());
+			}				
+		}
+		scan.close();
+	}
+	
+
+	public static void main(String[] args) {
+		File file = new File(args[0]);
+		readList(file);
+		long start = System.currentTimeMillis();
+		System.out.println(getMST());
+		System.out.println(System.currentTimeMillis() - start);
+	}
+
+	/*
+	 * Duckburg "Gotham City" Metropolis Duckburg--"Gotham City" [2324]
+	 * DuckburgÐ-Metropolis [231] ÒGotham CityÓ-ÐMetropolis [2298]
+	 */
+}
